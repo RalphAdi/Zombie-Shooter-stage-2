@@ -7,6 +7,9 @@ var heart1Img, heart2Img, heart3Img;
 
 var zombieGroup;
 
+var bullets = 70;
+
+var gameState = "fight"
 
 
 function preload(){
@@ -59,12 +62,19 @@ player = createSprite(displayWidth-1150, displayHeight-300, 50, 50);
     heart3.scale = 0.4
    
 
-    //creating group for zombies    
-    zombieGroup = new Group();
+    //creating groups for zombies and bullets
+    bulletGroup = new Group()
+    zombieGroup = new Group()
+
+
+
 }
 
 function draw() {
   background(0); 
+
+
+if(gameState === "fight"){
 
   //moving the player up and down and making the game mobile compatible using touches
 if(keyDown("UP_ARROW")||touches.length>0){
@@ -77,10 +87,14 @@ if(keyDown("DOWN_ARROW")||touches.length>0){
 
 //release bullets and change the image of shooter to shooting position when space is pressed
 if(keyWentDown("space")){
+  bullet = createSprite(displayWidth-1150,player.y-30,20,10)
+  bullet.velocityX = 20
   
+  bulletGroup.add(bullet)
+  player.depth = bullet.depth
+  player.depth = player.depth+2
   player.addImage(shooter_shooting)
-  
- 
+  bullets = bullets-1
 }
 
 //player goes back to original standing image once we stop pressing the space bar
@@ -88,25 +102,78 @@ else if(keyWentUp("space")){
   player.addImage(shooterImg)
 }
 
+//go to gameState "bullet" when player runs out of bullets
+if(bullets==0){
+  gameState = "bullet"
+    
+}
+
+//destroy the zombie when bullet touches it
+if(zombieGroup.isTouching(bulletGroup)){
+  for(var i=0;i<zombieGroup.length;i++){     
+      
+   if(zombieGroup[i].isTouching(bulletGroup)){
+        zombieGroup[i].destroy()
+        bulletGroup.destroyEach()
+       
+        } 
+  
+  }
+}
 
 //destroy zombie when player touches it
 if(zombieGroup.isTouching(player)){
- 
 
  for(var i=0;i<zombieGroup.length;i++){     
       
   if(zombieGroup[i].isTouching(player)){
        zombieGroup[i].destroy()
        } 
+ 
  }
 }
 
 //calling the function to spawn zombies
 enemy();
-
-drawSprites();
 }
 
+drawSprites();
+
+//destroy zombie and player and display a message in gameState "lost"
+if(gameState == "lost"){
+  
+  textSize(100)
+  fill("red")
+  text("You Lost ",400,400)
+  zombieGroup.destroyEach();
+  player.destroy();
+
+}
+
+//destroy zombie and player and display a message in gameState "won"
+else if(gameState == "won"){
+ 
+  textSize(100)
+  fill("yellow")
+  text("You Won ",400,400)
+  zombieGroup.destroyEach();
+  player.destroy();
+
+}
+
+//destroy zombie, player and bullets and display a message in gameState "bullet"
+else if(gameState == "bullet"){
+ 
+  textSize(50)
+  fill("yellow")
+  text("You ran out of bullets!!!",470,410)
+  zombieGroup.destroyEach();
+  player.destroy();
+  bulletGroup.destroyEach();
+
+}
+
+}
 
 
 //creating function to spawn zombies
